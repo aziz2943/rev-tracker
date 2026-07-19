@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Revision">
+<title>Revision Tracker</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #F5F2EC;
+    --surface: #FFFDF8;
+    --surface2: #EDE9E0;
+    --ink: #1A1714;
+    --ink2: #6B6560;
+    --ink3: #A39E99;
+    --accent: #2D5A3D;
+    --accent-light: #D4E8DA;
+    --accent-ink: #1A3D28;
+    --warn: #8B3A1A;
+    --warn-light: #F5DDD4;
+    --amber: #7A5C1E;
+    --amber-light: #F0E6C8;
+    --purple: #3D2A6B;
+    --purple-light: #E4DEFF;
+    --blue: #1A3A6B;
+    --blue-light: #D4E4FF;
+    --pink: #6B1A45;
+    --pink-light: #FFD4EC;
+    --border: rgba(26,23,20,0.1);
+    --border2: rgba(26,23,20,0.06);
+    --r: 14px;
+    --r-sm: 8px;
+    --shadow: 0 2px 12px rgba(26,23,20,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    overscroll-behavior: none;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--accent);
+    padding: 52px 24px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .app-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    color: #fff;
+    line-height: 1.1;
+  }
+  .app-subtitle {
+    font-size: 13px;
+    color: rgba(255,255,255,0.65);
+    margin-top: 3px;
+    font-weight: 300;
+  }
+  .date-chip {
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    font-size: 12px;
+    padding: 5px 10px;
+    border-radius: 99px;
+    font-weight: 500;
+    white-space: nowrap;
+    margin-top: 4px;
+  }
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 8px;
+  }
+  .stat-pill {
+    background: rgba(255,255,255,0.12);
+    border-radius: var(--r-sm);
+    padding: 8px 10px;
+    text-align: center;
+  }
+  .stat-pill .n { font-size: 20px; font-weight: 600; color: #fff; line-height: 1; }
+  .stat-pill .l { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 3px; font-weight: 400; }
+
+  /* ── TABS ── */
+  .tabs {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border2);
+    display: flex;
+    position: sticky;
+    top: 0;
+    z-index: 90;
+  }
+  .tab {
+    flex: 1;
+    padding: 14px 0;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink3);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color .15s, border-color .15s;
+    user-select: none;
+  }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* ── CONTENT ── */
+  .content { padding: 20px 16px 100px; }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── ADD BOX ── */
+  .add-card {
+    background: var(--surface);
+    border-radius: var(--r);
+    border: 1px solid var(--border2);
+    padding: 16px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+  }
+  .add-card label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink3);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    display: block;
+    margin-bottom: 8px;
+  }
+  .add-card input {
+    width: 100%;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    color: var(--ink);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    padding: 11px 13px;
+    margin-bottom: 10px;
+    outline: none;
+    -webkit-appearance: none;
+  }
+  .add-card input:focus { border-color: var(--accent); }
+  .add-card input::placeholder { color: var(--ink3); }
+  .add-btn {
+    width: 100%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--r-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: opacity .15s;
+  }
+  .add-btn:active { opacity: .8; }
+
+  /* ── SECTION LABEL ── */
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink3);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 10px;
+    margin-top: 4px;
+  }
+
+  /* ── TASK CARD ── */
+  .task-card {
+    background: var(--surface);
+    border-radius: var(--r);
+    border: 1px solid var(--border2);
+    padding: 14px 14px 14px 12px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    box-shadow: var(--shadow);
+    transition: opacity .2s;
+  }
+  .task-card.overdue { border-left: 3px solid var(--warn); }
+  .task-card.done { opacity: .45; }
+
+  .check-btn {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: transparent;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-top: 1px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s, border-color .15s;
+    -webkit-appearance: none;
+  }
+  .check-btn.checked { background: var(--accent); border-color: var(--accent); }
+  .check-btn svg { display: none; }
+  .check-btn.checked svg { display: block; }
+
+  .task-body { flex: 1; min-width: 0; }
+  .task-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 5px;
+  }
+  .task-meta { font-size: 12px; color: var(--ink2); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 99px;
+    letter-spacing: .02em;
+  }
+  .b0 { background: var(--purple-light); color: var(--purple); }
+  .b1 { background: var(--accent-light); color: var(--accent-ink); }
+  .b2 { background: var(--amber-light); color: var(--amber); }
+  .b3 { background: var(--warn-light); color: var(--warn); }
+  .b4 { background: var(--blue-light); color: var(--blue); }
+  .b5 { background: var(--pink-light); color: var(--pink); }
+
+  .del-btn {
+    background: none; border: none;
+    color: var(--ink3); cursor: pointer;
+    font-size: 18px; line-height: 1;
+    padding: 2px 4px; flex-shrink: 0;
+    font-family: sans-serif;
+    transition: color .15s;
+  }
+  .del-btn:active { color: var(--warn); }
+
+  /* ── EMPTY STATE ── */
+  .empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--ink3);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .empty .icon { font-size: 36px; display: block; margin-bottom: 10px; }
+
+  /* ── TOPIC CARD (all view) ── */
+  .topic-card {
+    background: var(--surface);
+    border-radius: var(--r);
+    border: 1px solid var(--border2);
+    padding: 14px;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow);
+  }
+  .topic-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+  }
+  .topic-name { font-size: 14px; font-weight: 600; color: var(--ink); }
+  .topic-date { font-size: 11px; color: var(--ink3); margin-top: 2px; }
+  .rev-grid { display: flex; flex-wrap: wrap; gap: 5px; }
+  .rev-chip {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 8px;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    color: var(--ink2);
+    background: var(--bg);
+  }
+  .rev-chip.chip-done { background: var(--accent-light); color: var(--accent-ink); border-color: transparent; }
+  .rev-chip.chip-due { background: var(--warn-light); color: var(--warn); border-color: transparent; }
+
+  /* ── PROGRESS VIEW ── */
+  .prog-card {
+    background: var(--surface);
+    border-radius: var(--r);
+    border: 1px solid var(--border2);
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow);
+  }
+  .prog-label { font-size: 12px; color: var(--ink2); margin-bottom: 10px; }
+  .prog-bar-wrap { height: 8px; background: var(--surface2); border-radius: 99px; overflow: hidden; margin-bottom: 6px; }
+  .prog-bar-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width .4s; }
+  .prog-pct { font-size: 13px; color: var(--ink2); }
+  .prog-pct span { font-weight: 600; color: var(--ink); }
+
+  .week-day-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink3);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin: 14px 0 6px;
+  }
+  .week-day-label:first-child { margin-top: 0; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--ink);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 10px 18px;
+    border-radius: 99px;
+    z-index: 999;
+    transition: transform .3s cubic-bezier(.34,1.56,.64,1), opacity .3s;
+    opacity: 0;
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="app-title">Revision<br>Tracker</div>
+      <div class="app-subtitle">Spaced repetition schedule</div>
+    </div>
+    <div class="date-chip" id="date-chip"></div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-pill"><div class="n" id="s-topics">0</div><div class="l">Topics</div></div>
+    <div class="stat-pill"><div class="n" id="s-done">0</div><div class="l">Done</div></div>
+    <div class="stat-pill"><div class="n" id="s-due">0</div><div class="l">Due today</div></div>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('today')">Today</div>
+  <div class="tab" onclick="switchTab('week')">This week</div>
+  <div class="tab" onclick="switchTab('all')">All topics</div>
+</div>
+
+<div class="content">
+  <!-- TODAY -->
+  <div id="view-today" class="view active">
+    <div class="add-card">
+      <label for="topic-input">What did you study today?</label>
+      <input id="topic-input" type="text" placeholder="e.g. Photosynthesis, Trigonometry…" autocomplete="off" />
+      <button class="add-btn" onclick="addTopic()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+        Add to schedule
+      </button>
+    </div>
+    <div class="section-label" id="today-label">Due for revision today</div>
+    <div id="due-list"></div>
+  </div>
+
+  <!-- WEEK -->
+  <div id="view-week" class="view">
+    <div class="prog-card">
+      <div class="prog-label">Overall completion</div>
+      <div class="prog-bar-wrap"><div class="prog-bar-fill" id="prog-fill" style="width:0%"></div></div>
+      <div class="prog-pct"><span id="prog-pct-num">0</span>% of all revisions completed</div>
+    </div>
+    <div class="section-label">Next 7 days</div>
+    <div id="week-list"></div>
+  </div>
+
+  <!-- ALL TOPICS -->
+  <div id="view-all" class="view">
+    <div id="all-list"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────
+const OFFSETS = [1, 7, 15, 30, 45, 60];
+const REV_LABELS = ['1st revision','2nd revision','3rd revision','4th revision','5th revision','6th revision'];
+const BADGE_CLS = ['b0','b1','b2','b3','b4','b5'];
+
+function todayStr() {
+  const d = new Date();
+  return d.toISOString().split('T')[0];
+}
+function addDays(dateStr, n) {
+  const d = new Date(dateStr + 'T00:00:00');
+  d.setDate(d.getDate() + n);
+  return d.toISOString().split('T')[0];
+}
+function calcRevDue(start, idx) {
+  let d = start;
+  for (let i = 0; i <= idx; i++) d = addDays(d, OFFSETS[i]);
+  return d;
+}
+function fmtDate(s) {
+  const d = new Date(s + 'T00:00:00');
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+}
+function fmtDateFull(s) {
+  const d = new Date(s + 'T00:00:00');
+  return d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+}
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function load() { try { return JSON.parse(localStorage.getItem('rv2_data') || '[]'); } catch(e) { return []; } }
+function save(d) { localStorage.setItem('rv2_data', JSON.stringify(d)); }
+
+let data = load();
+let currentTab = 'today';
+
+// ── ADD ───────────────────────────────────────────────────────────────
+function addTopic() {
+  const inp = document.getElementById('topic-input');
+  const val = inp.value.trim();
+  if (!val) { inp.focus(); return; }
+  const t = todayStr();
+  const revisions = OFFSETS.map((_, i) => ({ due: calcRevDue(t, i), done: false }));
+  data.push({ id: Date.now(), title: val, added: t, revisions });
+  save(data);
+  inp.value = '';
+  render();
+  toast('Added to your revision schedule ✓');
+}
+
+document.getElementById('topic-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addTopic();
+});
+
+// ── DELETE ────────────────────────────────────────────────────────────
+function deleteTopic(id) {
+  if (!confirm('Remove this topic and all its revisions?')) return;
+  data = data.filter(t => t.id !== id);
+  save(data);
+  render();
+  toast('Topic removed');
+}
+
+// ── TOGGLE ────────────────────────────────────────────────────────────
+function toggleRev(topicId, revIdx) {
+  const t = data.find(x => x.id === topicId);
+  if (!t) return;
+  t.revisions[revIdx].done = !t.revisions[revIdx].done;
+  save(data);
+  render();
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2400);
+}
+
+// ── TAB SWITCH ────────────────────────────────────────────────────────
+function switchTab(t) {
+  currentTab = t;
+  document.querySelectorAll('.tab').forEach((el, i) => {
+    el.classList.toggle('active', ['today','week','all'][i] === t);
+  });
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.getElementById('view-' + t).classList.add('active');
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────
+function render() {
+  const today = todayStr();
+
+  // header date
+  document.getElementById('date-chip').textContent = fmtDate(today);
+
+  // stats
+  const totalRevs = data.reduce((s, t) => s + t.revisions.length, 0);
+  const doneRevs = data.reduce((s, t) => s + t.revisions.filter(r => r.done).length, 0);
+  const dueToday = data.reduce((s, t) => s + t.revisions.filter(r => !r.done && r.due <= today).length, 0);
+  document.getElementById('s-topics').textContent = data.length;
+  document.getElementById('s-done').textContent = doneRevs;
+  document.getElementById('s-due').textContent = dueToday;
+
+  // TODAY TAB
+  const dueTasks = [];
+  data.forEach(topic => {
+    topic.revisions.forEach((rev, i) => {
+      if (!rev.done && rev.due <= today) dueTasks.push({ topic, revIdx: i, rev, overdue: rev.due < today });
+    });
+  });
+  const dueList = document.getElementById('due-list');
+  const todayLabel = document.getElementById('today-label');
+  todayLabel.textContent = dueTasks.length ? `${dueTasks.length} revision${dueTasks.length>1?'s':''} due` : 'Due for revision today';
+  if (dueTasks.length === 0) {
+    dueList.innerHTML = `<div class="empty"><span class="icon">🎉</span>Nothing due today!<br>Keep adding topics you study.</div>`;
+  } else {
+    dueList.innerHTML = dueTasks.map(({ topic, revIdx, rev, overdue }) => `
+      <div class="task-card${rev.done?' done':''}${overdue?' overdue':''}">
+        <button class="check-btn${rev.done?' checked':''}" onclick="toggleRev(${topic.id},${revIdx})" aria-label="Mark done">
+          <svg width="12" height="12" fill="none" stroke="#fff" stroke-width="3" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>
+        </button>
+        <div class="task-body">
+          <div class="task-title">${esc(topic.title)}</div>
+          <div class="task-meta">
+            <span class="badge ${BADGE_CLS[revIdx]}">${REV_LABELS[revIdx]}</span>
+            ${overdue ? `<span style="color:var(--warn)">Overdue · ${fmtDate(rev.due)}</span>` : `<span>Due today</span>`}
+          </div>
+        </div>
+        <button class="del-btn" onclick="deleteTopic(${topic.id})" aria-label="Delete">✕</button>
+      </div>`).join('');
+  }
+
+  // WEEK TAB
+  const pct = totalRevs > 0 ? Math.round(doneRevs / totalRevs * 100) : 0;
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-pct-num').textContent = pct;
+
+  const weekList = document.getElementById('week-list');
+  const days = [];
+  for (let i = 0; i < 7; i++) days.push(addDays(today, i));
+  let weekHTML = '';
+  let anyWeek = false;
+  days.forEach(day => {
+    const tasks = [];
+    data.forEach(topic => {
+      topic.revisions.forEach((rev, i) => {
+        if (rev.due === day && !rev.done) tasks.push({ topic, revIdx: i, rev });
+      });
+    });
+    if (tasks.length) {
+      anyWeek = true;
+      const label = day === today ? 'Today' : day === addDays(today, 1) ? 'Tomorrow' : fmtDate(day);
+      weekHTML += `<div class="week-day-label">${label}</div>`;
+      tasks.forEach(({ topic, revIdx, rev }) => {
+        weekHTML += `
+          <div class="task-card">
+            <button class="check-btn" onclick="toggleRev(${topic.id},${revIdx})" aria-label="Mark done">
+              <svg width="12" height="12" fill="none" stroke="#fff" stroke-width="3" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>
+            </button>
+            <div class="task-body">
+              <div class="task-title">${esc(topic.title)}</div>
+              <div class="task-meta"><span class="badge ${BADGE_CLS[revIdx]}">${REV_LABELS[revIdx]}</span></div>
+            </div>
+          </div>`;
+      });
+    }
+  });
+  weekList.innerHTML = anyWeek ? weekHTML : `<div class="empty"><span class="icon">📅</span>No revisions scheduled<br>in the next 7 days.</div>`;
+
+  // ALL TOPICS TAB
+  const allList = document.getElementById('all-list');
+  if (data.length === 0) {
+    allList.innerHTML = `<div class="empty"><span class="icon">📚</span>No topics added yet.<br>Head to Today and add what you studied!</div>`;
+    return;
+  }
+  allList.innerHTML = data.slice().reverse().map(topic => `
+    <div class="topic-card">
+      <div class="topic-header">
+        <div>
+          <div class="topic-name">${esc(topic.title)}</div>
+          <div class="topic-date">Added ${fmtDate(topic.added)}</div>
+        </div>
+        <button class="del-btn" onclick="deleteTopic(${topic.id})" aria-label="Delete">✕</button>
+      </div>
+      <div class="rev-grid">
+        ${topic.revisions.map((rev, i) => {
+          let cls = 'rev-chip';
+          if (rev.done) cls += ' chip-done';
+          else if (rev.due <= today) cls += ' chip-due';
+          return `<span class="${cls}">${REV_LABELS[i]}${rev.done ? ' ✓' : ''} · ${fmtDate(rev.due)}</span>`;
+        }).join('')}
+      </div>
+    </div>`).join('');
+}
+
+render();
+</script>
+</body>
+</html>
