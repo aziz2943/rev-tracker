@@ -403,23 +403,36 @@
 
 <script>
 // ── DATA ──────────────────────────────────────────────────────────────
+// Each revision is scheduled N days from the day the topic was added
+// (NOT cumulative — rev 2 is today+7, not rev1+7).
 const OFFSETS = [1, 7, 15, 30, 45, 60];
 const REV_LABELS = ['1st revision','2nd revision','3rd revision','4th revision','5th revision','6th revision'];
 const BADGE_CLS = ['b0','b1','b2','b3','b4','b5'];
 
 function todayStr() {
-  const d = new Date();
-  return d.toISOString().split('T')[0];
+  // Always compute "today" in India Standard Time (Asia/Kolkata),
+  // regardless of the device's local time zone.
+  const fmt = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric', month: '2-digit', day: '2-digit'
+  });
+  return fmt.format(new Date()); // en-CA gives YYYY-MM-DD
 }
 function addDays(dateStr, n) {
-  const d = new Date(dateStr + 'T00:00:00');
-  d.setDate(d.getDate() + n);
-  return d.toISOString().split('T')[0];
+  // Work entirely in date components — no toISOString() here, since that
+  // converts through UTC and rolls the date back a day for IST (+5:30).
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  dt.setUTCDate(dt.getUTCDate() + n);
+  const yy = dt.getUTCFullYear();
+  const mm = String(dt.getUTCMonth() + 1).padStart(2, '0');
+  const dd = String(dt.getUTCDate()).padStart(2, '0');
+  return `${yy}-${mm}-${dd}`;
 }
 function calcRevDue(start, idx) {
-  let d = start;
-  for (let i = 0; i <= idx; i++) d = addDays(d, OFFSETS[i]);
-  return d;
+  // Directly offset from the start (added) date — each revision counts
+  // from today, not from the previous revision.
+  return addDays(start, OFFSETS[idx]);
 }
 function fmtDate(s) {
   const d = new Date(s + 'T00:00:00');
